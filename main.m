@@ -3,14 +3,14 @@ clc; clear all; close all;format short;warning('off');
 global bed_hight bed_width bed_temp nozzle_dim filament_dim filament_temp bed_center00
 global layer_hight shell_thick top_bottom_thick infill_type top_bottom_type infill_density print_speed skirt_dis
 %% define parameter
-% printer parameter¡ý
+% printer parameterÂ¡Ã½
 bed_hight=400;bed_width=300; %bed hight and width(mm)
 bed_temp=60; %bed temperature(C)
 nozzle_dim=0.4; %nozzle diameter(mm)
 filament_dim=1.75; %filament diameter(mm)
 filament_temp=200; %filament temperature(C)
 bed_center00=false; %bed center coordinate
-% slice parameter¡ý
+% slice parameterÂ¡Ã½
 layer_hight=.2; %layer height(mm)
 shell_thick=1; %shell thickness(mm)
 top_bottom_thick=1; %top and bottom surface thickness(mm)
@@ -19,19 +19,17 @@ top_bottom_type='rec'; %rec and offset is optional
 infill_density=25; %0->100 by percent
 print_speed=60; %nozzle move speed(mm/s)
 skirt_dis=5; %skirt distance
-% experiment function¡ý
+% experiment functionÂ¡Ã½
 adptive=0; %adptive:0 equal thickness, 1 adptive
 % file input/output 
 filename='col.stl';
 gfilename='test.gcode';
-% parameter¡ýdo not modify
+% parameterÂ¡Ã½do not modify
 %movelist={'layer type' 'layer hight' 'layer polygon' 'layer shell' 'layer infill'};
-%I suggest not modify anything below except rotate option¡ý¡ý¡ý
+%I suggest not modify anything below except rotate optionÂ¡Ã½Â¡Ã½Â¡Ã½
 %% file I/O
 tic
-%triangles = read_ascii_stl('hole.stl',1);
-%triangles = read_ascii_stl('__.stl',1);
-triangles = read_binary_stl_file(filename);
+triangles = read_stl_file(filename);
 timeio=toc;
 fprintf('File read done, %.4f sec elapsed\n',timeio);
 %% model rotate
