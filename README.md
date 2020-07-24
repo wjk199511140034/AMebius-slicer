@@ -13,5 +13,5 @@ Run main.m, modify filenam gfilename
 # Require
 Matlab R2017b
 
-# Notice
-Read binary stl file by default, change file i/o part if you are trying read ascii stl file.
+# This Slicer also uploaded to Matlab FileExchange
+https://www.mathworks.com/matlabcentral/fileexchange/76980-amebius-slicer-stl-slice-create-path-to-gcode-for-3d-print
