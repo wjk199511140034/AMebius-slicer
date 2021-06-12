@@ -1,39 +1,42 @@
-function [layertype,z_slices_cell,polygon_cell] = generate_polygon(triangles)
-global layer_hight
+function [layertype,z_slices_cell,layerangle,polygon_cell] = generate_polygon(triangles)
+global layer_hight 
 polygon_cell ={};
 z_slices_cell={};
+layerangle={};
 layertype={};
 % min_z = min([triangles(:,3); triangles(:,6);triangles(:,9)]);
 % max_z = max([triangles(:,3); triangles(:,6);triangles(:,9)])+1e-4;
-min_z = min(triangles(:,13));
+
+triangles = [triangles,zeros(length(triangles),3),min(triangles(:,[3 6 9]),[],2), max(triangles(:,[ 3 6 9]),[],2),ones(length(triangles),1)];
+min_z = min(triangles(:,13))+1e-4;
 max_z = max(triangles(:,14))+1e-4;
 z_slices = min_z+layer_hight: layer_hight :max_z;
 %triangles_new = [triangles(:,1:12),min(triangles(:,[3 6 9]),[],2), max(triangles(:,[ 3 6 9]),[],2)];
-%max(A)ºÍmax(A,[],1)È¡¾ØÕóAÃ¿ÁĞ×î´óµÄÖµ·µ»ØĞĞÏòÁ¿£¬max(A,[],2)È¡¾ØÕóAÃ¿ĞĞ×î´óµÄÖµ·µ»ØÁĞÏòÁ¿
-%¹Êtriangles_newÊÇÒ»¸ö14ÁĞ¾ØÕó£¬×îºóÁ½ÁĞÊÇÃ¿¸öÃæÆ¬µÄZ×îĞ¡ºÍ×î´óÖµ
+%max(A)å’Œmax(A,[],1)å–çŸ©é˜µAæ¯åˆ—æœ€å¤§çš„å€¼è¿”å›è¡Œå‘é‡ï¼Œmax(A,[],2)å–çŸ©é˜µAæ¯è¡Œæœ€å¤§çš„å€¼è¿”å›åˆ—å‘é‡
+%æ•…triangles_newæ˜¯ä¸€ä¸ª14åˆ—çŸ©é˜µï¼Œæœ€åä¸¤åˆ—æ˜¯æ¯ä¸ªé¢ç‰‡çš„Zæœ€å°å’Œæœ€å¤§å€¼
 
 slices = z_slices;
 z_triangles = zeros(size(z_slices,2),4000);
 z_triangles_size=zeros(size(z_slices,2),1);
-%size(A,2)·µ»ØAµÄÁĞÊı£¬ÕâÀïÊÇ×Ü²ãÊı£¬Ô¤ÏÈ¿ª±Ù¿Õ¼ä
+%size(A,2)è¿”å›Açš„åˆ—æ•°ï¼Œè¿™é‡Œæ˜¯æ€»å±‚æ•°ï¼Œé¢„å…ˆå¼€è¾Ÿç©ºé—´
 
 for i = 1:size(triangles,1)
-    %author's old algorithm ¡ü¡ü¡ü
-    %my new algorithm ¡ı¡ı¡ı
+    %author's old algorithm â†‘â†‘â†‘
+    %my new algorithm â†“â†“â†“
     node_low = triangles(i,13);
     node_high = triangles(i,14);
     z_high_index2=find(slices<=node_high,1,'last')+1;
     z_low_index2=find(slices>=node_low,1);
-    %end of my new algorithm ¡ü¡ü¡ü   
+    %end of my new algorithm â†‘â†‘â†‘   
     if z_high_index2 > z_low_index2 
         for j = z_low_index2:z_high_index2-1
             z_triangles_size(j) = z_triangles_size(j) + 1;
-            %z_triangles_sizeÊÇÁĞÏòÁ¿£¬³¤¶ÈÎª×Ü²ãÊı
-            %Óëµ±Ç°ÃæÆ¬Ïà½»µÄz±àºÅ+1£¬Ñ­»·Íê³ÉËùÓĞÃæÆ¬Ö®ºó£¬z_triangles_sizeµÄÃ¿Ò»ĞĞ±íÊ¾¶ÔÓ¦zÏà½»µÄÃæÆ¬Êı
+            %z_triangles_sizeæ˜¯åˆ—å‘é‡ï¼Œé•¿åº¦ä¸ºæ€»å±‚æ•°
+            %ä¸å½“å‰é¢ç‰‡ç›¸äº¤çš„zç¼–å·+1ï¼Œå¾ªç¯å®Œæˆæ‰€æœ‰é¢ç‰‡ä¹‹åï¼Œz_triangles_sizeçš„æ¯ä¸€è¡Œè¡¨ç¤ºå¯¹åº”zç›¸äº¤çš„é¢ç‰‡æ•°
             z_triangles(j,z_triangles_size(j)) = i;
-            %z_trianglesÃ¿Ò»ĞĞ´ú±íÃ¿Ò»¸özÖµ
-            %Ã¿ĞĞ±íÊ¾Óë¶ÔÓ¦zÏà½»µÄÃæÆ¬±àºÅ(trianglesĞĞºÅ)£¬
-            %z_trianglesÃ¿Ò»ĞĞµÄÓĞĞ§Êı¾İ¸öÊıµÈÓÚz_triangles_sizeÃ¿ĞĞµÄÖµ
+            %z_trianglesæ¯ä¸€è¡Œä»£è¡¨æ¯ä¸€ä¸ªzå€¼
+            %æ¯è¡Œè¡¨ç¤ºä¸å¯¹åº”zç›¸äº¤çš„é¢ç‰‡ç¼–å·(trianglesè¡Œå·)ï¼Œ
+            %z_trianglesæ¯ä¸€è¡Œçš„æœ‰æ•ˆæ•°æ®ä¸ªæ•°ç­‰äºz_triangles_sizeæ¯è¡Œçš„å€¼
         end
     end
 end
@@ -42,10 +45,33 @@ triangle_checklist2 = z_triangles;
 for  k = 1:size(z_slices,2)
   
     triangle_checklist = triangle_checklist2(k,1:z_triangles_size(k));
-    %triangle_checklistÊÇÒ»¸öĞĞÏòÁ¿£¬³¤¶ÈµÈÓÚÓëµ±Ç°zÏà½»µÄÃæÆ¬¸öÊı£¬Ã¿Ò»¸öÔªËØ±íÊ¾Ïà½»µÄÃæÆ¬±àºÅ
-    %tri=triangles(triangle_checklist,:);
-    %tri¾ÍÊÇËùÓĞÓëµ±Ç°zÏà½»µÄÃæÆ¬
-    [lines,linesize] = triangle_plane_intersection(triangles(triangle_checklist,:), z_slices(k));
+    %triangle_checklistæ˜¯ä¸€ä¸ªè¡Œå‘é‡ï¼Œé•¿åº¦ç­‰äºä¸å½“å‰zç›¸äº¤çš„é¢ç‰‡ä¸ªæ•°ï¼Œæ¯ä¸€ä¸ªå…ƒç´ è¡¨ç¤ºç›¸äº¤çš„é¢ç‰‡ç¼–å·
+    tri=triangles(triangle_checklist,:);
+    %triå°±æ˜¯æ‰€æœ‰ä¸å½“å‰zç›¸äº¤çš„é¢ç‰‡
+    [lines,linesize] = triangle_plane_intersection(tri, z_slices(k));
+%     if k==23
+%         view(3)
+%         for i=1:size(tri,1)
+%             patch(tri(i,[1 4 7 1]),tri(i,[2 5 8 2]),tri(i,[3 6 9 3]),[0.9290 0.6940 0.1250],...
+%                 'FaceAlpha',1,'LineWidth',1.5,'AlignVertexCenters','on')
+%             hold on
+%         end
+%         for i=1:size(lines,1)
+%             plot3(lines(i,[1 4]),lines(i,[2 5]),lines(i,[3 6]),'k--','LineWidth',1)
+%             hold on
+%         end
+%         z=lines(1,3);
+%         xi=min(min(lines(:,[1 4])))-2;
+%         xa=max(max(lines(:,[1 4])))+2;
+%         yi=min(min(lines(:,[2 5])))-2;
+%         ya=max(max(lines(:,[2 5])))+2;
+%         patch([xi xa xa xi],[yi yi ya ya],[z z z z],'c','FaceAlpha',0.3,'LineWidth',1)
+%         %axis equal;
+%         daspect([1 1 0.4])
+%         %axis([-Inf Inf -Inf Inf 0 10]);
+%         axis off;
+%      end
+    
      if linesize ~= 0
             %find all the points assign nodes and remove duplicates
             start_nodes = lines(1:linesize,1:2);
@@ -74,7 +100,7 @@ for  k = 1:size(z_slices,2)
             bins = conncomp(G);
             
             movelist =[];
-          for i = 1: max(bins)
+            for i = 1: max(bins)
                     startNode = find(bins==i, 1, 'first');
                     %path =[];
                     path = dfsearch(G, startNode);
@@ -91,11 +117,16 @@ for  k = 1:size(z_slices,2)
                     movelist = [movelist;movelist1; [NaN NaN]];
                     
                     
-          end
+            end
           %polygon_cell(k,:) = {polygon};
           polygon_cell{k,1}=polyshape(movelist);
           %z_slices_cell(k,:)=num2cell(z_slices(k));
           z_slices_cell{k,1}=z_slices(k);
+          %[~,index]=min(abs(tri(:,15)));
+          %layerangle{k,1}=tri(index,15);
+          layerangle_p=min(tri(tri(:,15)>0,15));
+          layerangle_n=max(tri(tri(:,15)<0,15));
+          layerangle{k,1}=[layerangle_n,layerangle_p];
           layertype{k,1}=1;
      end
     
