@@ -16,14 +16,14 @@ Matlab R2017b
 # This Slicer also uploaded to Matlab FileExchange
 https://www.mathworks.com/matlabcentral/fileexchange/76980-amebius-slicer-stl-slice-create-path-to-gcode-for-3d-print
 
-Major update:
-Major improvements for the overall framework
-AMebius Slice now generate the solid layer properly
-AMebius Slice now can gennerate support(silly, but its working!)
-Auto detect STL file type
-Two adaptive slice algorithm
-New Fast External Adaptive methods, adptive only with shell part but no infill and support
-Konwing issue:
-Some thin-shell model may slice improperly
-Next work:
-Curved-layer slicing
+# Major update:
+Major improvements for the overall framework<br>
+AMebius Slice now generate the solid layer properly<br>
+AMebius Slice now can gennerate support(silly, but its working!)<br>
+Auto detect STL file type<br>
+Two adaptive slice algorithm<br>
+New Fast External Adaptive methods, adptive only with shell part but no infill and support<br>
+Konwing issue:<br>
+Some thin-shell model may slice improperly<br>
+Next work:<br>
+Curved-layer slicing<br>
