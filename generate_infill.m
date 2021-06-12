@@ -1,54 +1,67 @@
-function [infill_cell] = generate_infill(ploygon_cell,x_min,x_max,y_min,y_max)
-global layer_hight shell_thick top_bottom_thick nozzle_dim infill_type top_bottom_type infill_density
-infill_cell={};
-shell_num=floor(shell_thick/nozzle_dim);
-%if shell_num<1
-    %infillshell=nozzle_dim/2;
-%else
-    infillshell=(shell_num+1)*nozzle_dim-nozzle_dim/2;
-    %infill offset start distance
-%end
-solid_num=floor(top_bottom_thick/layer_hight);
-%¼òµ¥µÄÍ¨¹ı¸ß¶ÈÀ´ÅĞ¶ÏÊÇÄÚ²¿»¹ÊÇÍâ²¿
-if strcmp(infill_type,'rec')
-    %infill_type='offset';
-    %fprintf('Warning: infill type rec still under construction, use offset to generate infill\n');
-end
-cc=1;
-for i=1:size(ploygon_cell,1)
-    if i<=solid_num || i>(size(ploygon_cell,1)-solid_num)
-    %¼òµ¥µÄÍ¨¹ı¸ß¶ÈÀ´ÅĞ¶ÏÊÇÄÚ²¿»¹ÊÇÍâ²¿,Íâ²¿µÄÇé¿ö
-        if strcmp(top_bottom_type,'rec')
-            if mod(cc,2)==0
-                infill_cell{i}=infill_lines_rec(ploygon_cell{i},nozzle_dim,infillshell,-1,0,y_min,y_max);
-                %plot(infill_cell{i}(:,1),infill_cell{i}(:,2))
-            else
-                infill_cell{i}=infill_lines_rec(ploygon_cell{i},nozzle_dim,infillshell,-1,90,x_min,x_max);
-                %plot(infill_cell{i}(:,1),infill_cell{i}(:,2))
-            end
-            cc=cc+1;
-            %infill_cell{i}='out-rec';
-        elseif strcmp(top_bottom_type,'offset')
-            infill_cell{i}=infill_lines_offset(ploygon_cell{i},nozzle_dim,infillshell,-1);
-            %infill_cell{i}='out-offset';
-        else 
-            infill_cell{i}='NaN';
-            fprintf('Warning: no infill generated due to infill_type\n');
-        end
-    else
-    %Íâ²¿Ìî³äµÄÇé¿ö
-        if strcmp(infill_type,'rec')
-            %infill_cell{i}=infill_lines_rec(ploygon_cell{i},nozzle_dim,infillshell,infill_density);  
-            %infill_cell{i}='inner-rec';
-            infill_cell_1=infill_lines_rec(ploygon_cell{i},nozzle_dim,infillshell,infill_density,0,y_min,y_max);
-            infill_cell_2=infill_lines_rec(ploygon_cell{i},nozzle_dim,infillshell,infill_density,90,x_min,x_max);
-            infill_cell{i}=cat(1,infill_cell_1,infill_cell_2);
-        elseif strcmp(infill_type,'offset')
-            infill_cell{i}=infill_lines_offset(ploygon_cell{i},nozzle_dim,infillshell,infill_density);
-            %infill_cell{i}='inner-offset';
+function [solid_infill_cell,normal_infill_cell,support_infill_cell] = generate_infill(solid_and_normal_and_support,x_min,x_max,y_min,y_max)
+
+%solidèµ·å§‹çš„nozzle_dim/2å·²ç»ç®—è¿›å»äº†ã€‚å¤–è½®å»“ä¸éœ€è¦å†æ¬¡åç§»
+
+global  solid_type infill_density nozzle_dim support
+solid_cell=solid_and_normal_and_support(:,1);
+normal_cell=solid_and_normal_and_support(:,2);
+support_cell=solid_and_normal_and_support(:,3);
+solid_infill_judge=[];
+% shell_num=floor(shell_thick/nozzle_dim);
+% infillshell=(shell_num+1)*nozzle_dim-nozzle_dim/2;
+% infill_lines_rec(è¾“å…¥å¤šè¾¹å½¢,å¤šè¾¹å½¢åç§»,å¯†åº¦,è§’åº¦,y_min,y_max)
+% infill_lines_offset(è¾“å…¥å¤šè¾¹å½¢,å¤šè¾¹å½¢åç§»,åç§»ä¸€æ¬¡,å¯†åº¦)
+for i=1:size(solid_cell,1)  
+    %generate solid infill
+    if strcmp(solid_type,'rec')
+        if mod(i,2)==0    
+            infill_1=infill_lines_rec(solid_cell{i},-(nozzle_dim/2-0.03),-1,0,y_min,y_max);
         else
-            infill_cell{i}='NaN';
-            fprintf('Warning: no infill generated due to infill_type\n');
+            infill_1=infill_lines_rec(solid_cell{i},-(nozzle_dim/2-0.03),-1,90,x_min,x_max);
+        end
+        infill_2=infill_lines_offset(solid_cell{i},0,1,-1);
+        solid_infill_cell{i,1}=[infill_1;infill_2];
+        solid_infill_judge(i)=isempty(infill_1);
+    else
+        infill_1=infill_lines_offset(solid_cell{i},0,0,-1);
+        solid_infill_cell{i,1}=[infill_1];
+    end
+end
+
+for i=1:size(normal_cell,1) 
+    %generate normal infill
+    if isempty(solid_cell{i}.Vertices) 
+        %æ— å®ä½“å¡«å……åŒºåŸŸ
+        infill_1=infill_lines_rec(normal_cell{i},-(0.5*nozzle_dim),infill_density,0,y_min,y_max);
+        infill_2=infill_lines_rec(normal_cell{i},-(0.5*nozzle_dim-0.03),infill_density,90,x_min,x_max);
+        infill_3=infill_lines_offset(normal_cell{i},0,1,-1);
+        normal_infill_cell{i,1}=[infill_1;infill_2;infill_3];
+        solid_infill_cell{i,1}=[];
+    elseif solid_infill_judge(i)
+        %å®ä½“å¡«å……åŒºåŸŸå¤ªå°ï¼Œå®é™…è·¯å¾„ä¸ºç©º
+        normal_cell{i}=union(solid_cell{i},normal_cell{i});
+        infill_1=infill_lines_rec(normal_cell{i},-(0.5*nozzle_dim),infill_density,0,y_min,y_max);
+        infill_2=infill_lines_rec(normal_cell{i},-(0.5*nozzle_dim-0.03),infill_density,90,x_min,x_max);
+        infill_3=infill_lines_offset(normal_cell{i},0,1,-1);
+        normal_infill_cell{i,1}=[infill_1;infill_2;infill_3];
+        solid_infill_cell{i,1}=[];
+    else
+        infill_1=infill_lines_rec(normal_cell{i},-(0.5*nozzle_dim),infill_density,0,y_min,y_max);
+        infill_2=infill_lines_rec(normal_cell{i},-(0.5*nozzle_dim-0.03),infill_density,90,x_min,x_max);
+        normal_infill_cell{i,1}=[infill_1;infill_2];
+    end
+end
+
+if support==1
+    for i=1:size(support_cell,1)
+        if ~isempty(support_cell{i})
+            infill_2=infill_lines_offset(support_cell{i},0,1,-1);
+            infill_1=infill_lines_rec(support_cell{i},0,20,0,y_min,y_max);
+            support_infill_cell{i,1}=[infill_1;infill_2];
+        else
+            support_infill_cell{i,1}=[];
         end
     end
+else
+    support_infill_cell=cell(size(solid_and_normal_and_support,1),1);
 end
