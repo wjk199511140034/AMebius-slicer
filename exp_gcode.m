@@ -1,5 +1,5 @@
-function [statu]= exp_gcode2(height,shell,infill,gfilename)
-global bed_temp filament_temp nozzle_dim layer_hight filament_dim print_speed
+function [statu]= exp_gcode(height,shell,solid,infill,support,gfilename)
+global bed_temp filament_temp nozzle_dim layer_hight filament_dim print_speed adptive_shell_only adptive_no_support
 %Eratio=nozzle_dim*layer_hight/pi/(filament_dim/2)^2;
 Fratio=print_speed*30;
 statu=0;
@@ -20,7 +20,20 @@ fprintf(fid,';start\n');
 gstatu=2;%0 normal,1 try to fix,2 end of loop or end of layer,3 end of shell
 for i=1:size(height,1)
     Z=height{i};
-    point=[shell{i};NaN,NaN;infill{i}];
+%     if isempty(infill{i})
+%         point=[shell{i}];
+%     else
+%         point=[shell{i};Inf Inf;infill{i}];
+%     end
+    if adptive_shell_only==1
+%         if adptive_no_support==1
+            point=[shell{i};Inf Inf;solid{i};infill{i};support{i}];
+%         else
+%             point=[shell{i};support{i};Inf Inf;solid{i};infill{i}];
+%         end
+    else 
+        point=[shell{i};solid{i};infill{i};support{i}];
+    end
     if i==1
         Eratio=nozzle_dim*layer_hight/pi/(filament_dim/2)^2;
     else
@@ -34,14 +47,22 @@ for i=1:size(height,1)
             gstatu=2;
             continue;%continue end current for loop,break end whole for loop
         end
+        if isinf(point(j,1))
+            %nan denote end of shell
+            gstatu=3;
+            Eratio=nozzle_dim*layer_hight/pi/(filament_dim/2)^2;
+            continue;
+        end
         if  gstatu==1
             x1=point(j,1);y1=point(j,2);
             x0=point(j-1,1);y0=point(j-1,2);
             distance=sqrt((x1-x0)^2+(y1-y0)^2); 
+            fprintf(fid,'G1 E2 ;retract back\n');
             fprintf(fid,'G1 F%d X%.4f Y%.4f E%.5f\n',Fratio,point(j,1),point(j,2),distance*Eratio);
             gstatu=0;
             continue;
-        elseif gstatu==2 
+        elseif gstatu==2 || gstatu==3
+            fprintf(fid,'G1 E-2 ;retract\n');
             fprintf(fid,'G0 F%d X%.4f Y%.4f Z%.4f\n',Fratio*2,point(j,1),point(j,2),Z);
             gstatu=1;
             continue;
