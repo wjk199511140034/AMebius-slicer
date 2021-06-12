@@ -23,6 +23,7 @@ AMebius Slice now can gennerate support(silly, but its working!)<br>
 Auto detect STL file type<br>
 Two adaptive slice algorithm<br>
 New Fast External Adaptive methods, adptive only with shell part but no infill and support<br>
+Printing time estimate<br>
 Konwing issue:<br>
 Some thin-shell model may slice improperly<br>
 Next work:<br>
