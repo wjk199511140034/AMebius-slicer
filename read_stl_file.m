@@ -16,8 +16,10 @@ facet_num = typecast(rdrd(81:84),'uint32');
 % end
 if DD.bytes==facet_num*50+84
     triangles=read_binary_file(filename);
+    fclose all;
 else
     triangles=read_ascii_file(filename);
+    fclose all;
 end
 
 
